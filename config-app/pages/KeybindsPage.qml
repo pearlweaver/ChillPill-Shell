@@ -8,7 +8,7 @@ import ".."
 Page {
     id: pg
 
-    readonly property string hyprFile: Quickshell.env("HOME") + "/.config/hypr/hyprland.lua"
+    readonly property string bindsFile: Quickshell.env("HOME") + "/.config/niri/chillpill-binds.kdl"
     property string msg: ""
     property bool msgOk: false
     property string out: ""
@@ -24,7 +24,7 @@ Page {
 
     function hl(code) {
         var out = "", last = 0, m
-        var re = /("(?:[^"\\]|\\.)*")|(--[^\n]*)/g
+        var re = /("(?:[^"\\]|\\.)*")|(\/\/[^\n]*)/g
         while ((m = re.exec(code))) {
             out += pg.esc(code.slice(last, m.index))
             if (m[1]) out += '<span style="color:#92de80;">' + pg.esc(m[1]) + "</span>"
@@ -32,8 +32,8 @@ Page {
             last = m.index + m[0].length
         }
         out += pg.esc(code.slice(last))
-        out = out.replace(/\b(hl\.bind|hl\.dsp\.exec_cmd|hl\.on)\b/g, '<span style="color:#dbc970;">$1</span>')
-        out = out.replace(/\b(mainMod)\b/g, '<span style="color:#7ba9dc;">$1</span>')
+        out = out.replace(/\b(binds|spawn|include)\b/g, '<span style="color:#dbc970;">$1</span>')
+        out = out.replace(/\b(Mod(?:\+[A-Za-z0-9_]+)+)/g, '<span style="color:#7ba9dc;">$1</span>')
         return out
     }
 
@@ -45,20 +45,20 @@ Page {
         copyTimer.restart()
     }
 
-    // single source of truth per state; mainMod must exist in hyprland.lua.
-    // the block is built from what check() reports, so the user's own combo
-    // expressions (verbatim, e.g. mainMod .. " + X") end up in the preview
-    // and in the paste, not a fixed default set.
+    // single source of truth per state. The block is built from what check()
+    // reports, so the user's own combos (verbatim, including properties such as
+    // repeat=false) end up in the preview and in the paste, not a fixed default
+    // set. `Mod` is niri's own modifier alias (Super on a TTY, Alt when nested).
     readonly property var defaultBinds: [
-        { state: "controlCenter",     expr: "mainMod .. \" + CTRL + C\"" },
-        { state: "cliphist",          expr: "mainMod .. \" + CTRL + V\"" },
-        { state: "dashboard",         expr: "mainMod .. \" + CTRL + B\"" },
-        { state: "spotlight",         expr: "mainMod .. \" + D\"" },
-        { state: "wallpaperSwitcher", expr: "mainMod .. \" + W\"" },
-        { state: "powerMenu",         expr: "mainMod .. \" + Escape\"" },
-        { state: "wifiState",         expr: "mainMod .. \" + SHIFT + W\"" },
-        { state: "bluetoothState",    expr: "mainMod .. \" + SHIFT + B\"" },
-        { state: "theme",             expr: "mainMod .. \" + T\"" }
+        { state: "controlCenter",     expr: "Mod+Ctrl+C" },
+        { state: "cliphist",          expr: "Mod+Ctrl+V" },
+        { state: "dashboard",         expr: "Mod+Ctrl+B" },
+        { state: "spotlight",         expr: "Mod+D" },
+        { state: "wallpaperSwitcher", expr: "Mod+W" },
+        { state: "powerMenu",         expr: "Mod+Escape" },
+        { state: "wifiState",         expr: "Mod+Shift+W" },
+        { state: "bluetoothState",    expr: "Mod+Shift+B" },
+        { state: "theme",             expr: "Mod+Shift+T" }
     ]
 
     readonly property string block: {
@@ -69,9 +69,9 @@ Page {
         for (var d = 0; d < defaultBinds.length; d++) {
             var db = defaultBinds[d]
             var expr = byState[db.state] || db.expr
-            lines.push("hl.bind(" + expr + ",  hl.dsp.exec_cmd(\"qs ipc -p /usr/share/chillpill-shell call " + db.state + " toggle\"))")
+            lines.push("    " + expr + " { spawn \"qs\" \"ipc\" \"-p\" \"/usr/share/chillpill-shell\" \"call\" \"" + db.state + "\" \"toggle\"; }")
         }
-        return "-- >>> chillpill-shell keybinds (managed)\n" + lines.join("\n") + "\n-- <<< chillpill-shell keybinds"
+        return "// >>> chillpill-shell keybinds (managed)\nbinds {\n" + lines.join("\n") + "\n}\n// <<< chillpill-shell keybinds"
     }
 
     function paste() {
@@ -138,7 +138,7 @@ Page {
 
     Heading { text: "KEYBINDS" }
     Text {
-        text: "Pastes a managed bind block. Your existing key combinations are kept as-is — defaults are only filled in for states you haven't bound, and old/duplicate binds for the same state are cleaned up. mainMod must be defined in your config. Binds activate on \"hyprctl reload\" or restart."
+        text: "Writes the binds to chillpill-binds.kdl next to your niri config and adds one include line at the end of config.kdl (niri 25.11 or newer). Your existing key combinations are kept as-is, defaults are only filled in for states you haven't bound, and old/duplicate binds for the same state are cleaned up. The include comes last, so these binds override niri's defaults on the same key (for example Mod+D). niri reloads the config on its own."
         color: Theme.fg5
         font.family: Theme.fontFamily
         font.pixelSize: 11
@@ -219,7 +219,7 @@ Page {
                 anchors.left: parent.left
                 anchors.leftMargin: 15
                 anchors.verticalCenter: parent.verticalCenter
-                text: hyprFile
+                text: bindsFile
                 color: Theme.fg2
                 font.family: Theme.fontFamily
                 font.pixelSize: 10

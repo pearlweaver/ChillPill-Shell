@@ -2,7 +2,7 @@
 Type=Application
 Name=CP-Shell
 GenericName=CP-Shell
-Comment=Feature rich dynamic pill bar for Hyprland
+Comment=Feature rich dynamic pill bar for niri
 Icon=/usr/share/chillpill-shell/share/logo.png
 Exec=/usr/bin/chillpill-shell
 Terminal=false

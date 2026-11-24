@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, qml-niri ? null, ... }:
 
 with lib;
 
@@ -25,7 +25,7 @@ in
 
     package = mkOption {
       type = types.package;
-      default = pkgs.callPackage ../default.nix { };
+      default = pkgs.callPackage ../default.nix { inherit qml-niri; };
       description = "Package chillpill-shell for use.";
     };
 

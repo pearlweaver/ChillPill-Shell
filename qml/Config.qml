@@ -27,7 +27,7 @@ Singleton {
       property int maxNotificationsInStack: 20
       property int dataUsageRefreshInterval: 300000
       property string dataUsageDefaultRange: "thisweek"
-      property string screenLockAppCommand: "hyprlock"
+      property string screenLockAppCommand: "loginctl lock-session"
       property int osdDuration: 800
       property string weatherUnits: "metric"
       property string weatherLocation: "Delhi"

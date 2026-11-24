@@ -52,7 +52,7 @@ Item {
   function triggerAction(actId) {
     if (actId === "lock") {
       // prefer the built-in lockscreen (ships next to shell.qml), fall back to the
-      // configured locker (hyprlock & friends) when it is not installed
+      // configured locker (swaylock, loginctl, etc.) when it is not installed
       const script = 'p=' + JSON.stringify(root.builtinLockPath) + '; '
         + 'if [ -f "$p" ]; then LOCK_NOW=1 qs -p "$p"; else ' + Config.screenLockAppCommand + '; fi';
       Quickshell.execDetached(["bash", "-c", script])
@@ -93,7 +93,7 @@ Item {
     } else if (actId === "reboot") {
       Quickshell.execDetached(["bash", "-c", "systemctl reboot"])
     } else if (actId === "logout") {
-      Quickshell.execDetached(["bash", "-c", "hyprctl dispatch 'hl.dsp.exit()' || hyprctl dispatch exit || loginctl terminate-session ${XDG_SESSION_ID:-self}"])
+      Quickshell.execDetached(["bash", "-c", "niri msg action quit --skip-confirmation || loginctl terminate-session ${XDG_SESSION_ID:-self}"])
     }
     cancelConfirmation()
     closeRequested()

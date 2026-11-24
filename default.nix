@@ -1,4 +1,4 @@
-{ pkgs ? import <nixpkgs> {} }:
+{ pkgs ? import <nixpkgs> {}, qml-niri ? null }:
 
 let
 qtModules = with pkgs.qt6; [
@@ -114,7 +114,7 @@ pkgs.stdenv.mkDerivation rec {
 
   postFixup = ''
     wrapProgram $out/bin/chillpill-shell \
-      --set QML_IMPORT_PATH "$out/share/chillpill-shell:$out/lib/qt6/qml:${qmlImportPath}" \
+      --set QML_IMPORT_PATH "$out/share/chillpill-shell:$out/lib/qt6/qml:${qmlImportPath}${pkgs.lib.optionalString (qml-niri != null) ":${qml-niri}/${pkgs.qt6.qtbase.qtQmlPrefix}"}" \
       --set QT_PLUGIN_PATH "${qtPluginPath}" \
       --set LD_LIBRARY_PATH "$out/lib/qt6/qml/PillBackend" \
       --prefix PATH : ${pkgs.lib.makeBinPath runtimeDeps}

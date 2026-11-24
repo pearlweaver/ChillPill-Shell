@@ -267,6 +267,8 @@ echo -e "\nConfig app command '${GREEN}chillpill-config${NC}'."
 
 # if needed backend build, that probably (partially) means a new user, so only show auto-run command paste code to them
 if $needs_build; then
-   echo -e "\nTo auto-run at every startup, paste this code in your ${BLUE_BG} ${BLACK}~/.config/hypr/hyprland.lua ${NC} config:"
-   echo -e "${BLUE}hl.on(\"hyprland.start\", function()\n   hl.exec_cmd(\"chillpill-shell\")\nend)${NC}\n"
+   echo -e "\nTo auto-run at every startup, add this line to ${BLUE_BG} ${BLACK}~/.config/niri/config.kdl ${NC}:"
+   echo -e "${BLUE}spawn-at-startup \"chillpill-shell\"${NC}\n"
 fi
+
+warn "The workspaces module needs the qml-niri plugin (https://github.com/imiric/qml-niri). Build it from its README."

@@ -16,7 +16,7 @@
 
 <div align="center">
 
-ChillPill-Shell is a **lightweight**, **feature-rich** dynamic pill bar for Hyprland, built with **Quickshell**.
+ChillPill-Shell is a **lightweight**, **feature-rich** dynamic pill bar for niri, built with **Quickshell**.
 It's aimed squarely at users running without a dedicated GPU (like me) — eye candy that doesn't cost you a discrete card. Runs great on integrated graphics.
 
 It runs as a **standalone app**: launch it from your terminal or app launcher when you want it, rather than having it baked
@@ -124,7 +124,7 @@ into your session at all times. It's not bound to any dotfiles.
   - Cliphist: <kbd>Middle click</kbd>
   - Dashboard: <kbd>Right click</kbd>
 
-  For the rest of states, you have to call the IPC through keybinds in Hyprland, which are provided in [Keybinds](#key-bindings)
+  For the rest of states, you have to call the IPC through keybinds in niri, which are provided in [Keybinds](#key-bindings)
   section (including the mouse open-able states)
 
 - DPI and Pill scaling is available in the config if you need it.
@@ -185,7 +185,7 @@ top filters every visible setting across them.
 
 ## Lockscreen (Default)
 > Default lockscreen app - authenticates through PAM's `login` service and uses the
-> Wayland session-lock protocol, so it is safe on Wayland compositors (Hyprland, Sway, river etc.)
+> Wayland session-lock protocol, so it is safe on Wayland compositors (niri, Sway, river etc.)
 
 <img src="screenshots/lockscreen.webp" width="100%" alt="Lockscreen App of ChillPill-Shell">
 
@@ -206,8 +206,8 @@ LOCK_WALLPAPER=~/Pictures/wall.png chillpill-lock  # lock with a specific wallpa
 | `LOCK_WALLPAPER=<path>` | Use this image instead of the detected one (blurred behind the card) |
 
 > [!WARNING]
-> Never `kill` a running lockscreen instance. Destroying a session-lock surface while locked makes Hyprland drop to
-> its pookie crash lockscreen. Unlock it properly, or quit the process only while it is idle in standby.
+> Never `kill` a running lockscreen instance. Destroying a session-lock surface while locked leaves the session locked
+> with nothing to unlock it. Unlock it properly, or quit the process only while it is idle in standby.
 
 ### Config
 
@@ -267,8 +267,8 @@ Use your custom scripts to see specific/niche info in ChillPill-Shell's Pill Bar
 
 ## Dependencies
 > [!NOTE]
-> Tested on **Arch Linux** and **NixOS** + **Hyprland**. Package names are Arch's.
-> `install.sh` handles everything below for Arch users.
+> This is a **niri** port of the Hyprland original. It needs **niri 25.11 or newer** (config `include`) and **Quickshell 0.3.0+** with the [qml-niri](https://github.com/imiric/qml-niri) plugin. Package names below are Arch's.
+> `install.sh` installs everything below for Arch users except the qml-niri plugin, which you build from its README.
 
 <details>
 <summary>What each package powers</summary>
@@ -278,6 +278,7 @@ Use your custom scripts to see specific/niche info in ChillPill-Shell's Pill Bar
 | Package | Powers |
 |---|---|
 | [Quickshell](https://quickshell.org/) | The whole shell - bar, states, config app |
+| [qml-niri](https://github.com/imiric/qml-niri) | Workspaces module (`import Niri`) |
 | [cliphist](https://github.com/sentriz/cliphist) | Pill bar · Cliphist (clipboard manager) state |
 | [nusgmon](https://github.com/LUCKYS1NGHH/nusgmon) | Dashboard · today's data usage |
 | [brightnessctl](https://github.com/Hummer12007/brightnessctl) | Brightness module, slider and OSD |
@@ -328,10 +329,6 @@ them so switching preferences never shows stale data.
 
 ## Install
 
-> [!TIP]
-> Use my Hyprland [dotfiles](https://github.com/LUCKYS1NGHH/dotfiles), it's also made for No Dedicated GPU machines.
-> You will get better performance.
-
 #### Arch users (AUR)
 
 ```bash
@@ -352,6 +349,8 @@ Add this repository as an input to your flake:
   };
 }
 ```
+
+The flake pulls in the qml-niri plugin and puts it on Quickshell's QML import path, so you do not need to install the plugin separately.
 
 Enable and configure it in your Home Manager configuration:
 
@@ -401,39 +400,46 @@ sudo ./uninstall.sh
 
 ### Auto startup
 
-To auto-run ChillPill-Shell whenever Hyprland starts, paste this code in your `~/.config/hypr/hyprland.lua` config file
+To auto-run ChillPill-Shell whenever niri starts, add this line to `~/.config/niri/config.kdl`:
 
-```lua
-hl.on("hyprland.start", function()
-   hl.exec_cmd("chillpill-shell")
-end)
+```kdl
+spawn-at-startup "chillpill-shell"
 ```
 
 ## Key Bindings
 
-Keybindings are highly recommended for ChillPill-Shell in your Hyprland config. They call the shell's IPC to toggle its pill states — adjust the key combinations to your preferences.
+Keybindings are highly recommended for ChillPill-Shell in your niri config. They call the shell's IPC to toggle its pill states — adjust the key combinations to your preferences.
 
 | State (IPC target) | Example Keybinds | Opens |
 |---|---|---|
-| `controlCenter` | `MOD + CTRL + C` | Media, sliders, buttons, notifications |
-| `cliphist` | `MOD + CTRL + V` | Clipboard history |
-| `dashboard` | `MOD + CTRL + B` | Profile, weather, data usage, calendar etc. |
-| `spotlight` | `MOD + D` | Apps list to open, web search, math and basic shell run |
-| `wallpaperSwitcher` | `MOD + W` | Wallpaper switcher |
-| `powerMenu` | `MOD + Escape` | Power menu actions |
-| `wifiState` | `MOD + SHIFT + W` | Wi-Fi State |
-| `bluetoothState` | `MOD + SHIFT + B` | Bluetooth State |
-| `theme` | `MOD + T` | Theme Picker |
+| `controlCenter` | `Mod+Ctrl+C` | Media, sliders, buttons, notifications |
+| `cliphist` | `Mod+Ctrl+V` | Clipboard history |
+| `dashboard` | `Mod+Ctrl+B` | Profile, weather, data usage, calendar etc. |
+| `spotlight` | `Mod+D` | Apps list to open, web search, math and basic shell run |
+| `wallpaperSwitcher` | `Mod+W` | Wallpaper switcher |
+| `powerMenu` | `Mod+Escape` | Power menu actions |
+| `wifiState` | `Mod+Shift+W` | Wi-Fi State |
+| `bluetoothState` | `Mod+Shift+B` | Bluetooth State |
+| `theme` | `Mod+Shift+T` | Theme Picker |
 
-`MOD` is the `mainMod` variable (typically <kbd>SUPER</kbd> key) from your config, e.g. `hl.bind(mainMod .. " + D", hl.dsp.exec_cmd("qs ipc -p /usr/share/chillpill-shell call spotlight toggle"))`.
-On NixOS the command is `chillpill-shell-ipc call <state> toggle` instead of `qs ipc -p /usr/share/chillpill-shell`
+`Mod` is niri's own modifier alias (<kbd>Super</kbd> on a TTY). In `config.kdl`:
+
+```kdl
+binds {
+    Mod+D { spawn "qs" "ipc" "-p" "/usr/share/chillpill-shell" "call" "spotlight" "toggle"; }
+}
+```
+
+On NixOS the command is `chillpill-shell-ipc call <state> toggle` instead of `qs ipc -p /usr/share/chillpill-shell`, so the same bind is `Mod+D { spawn "chillpill-shell-ipc" "call" "spotlight" "toggle"; }`.
 
 ```bash
 qs ipc -p /usr/share/chillpill-shell call <target> <toggle|show|hide>
 ```
 
 > [!TIP]
-> The config app can auto-paste these binds into `~/.config/hypr/hyprland.lua` in one click — open the **Keybinds** page and press *Auto paste keybinds*.
+> The config app can write these binds for you — open the **Keybinds** page and press *Auto paste keybinds*.
+> It writes `chillpill-binds.kdl` next to your `config.kdl` and adds one `include "chillpill-binds.kdl"` line at the end of `config.kdl`.
+> niri merges `binds` from included files and the later include overrides niri's default binds on the same key (for example `Mod+D`).
 
 ---
 

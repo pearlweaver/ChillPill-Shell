@@ -1,7 +1,6 @@
 //@ pragma UseQApplication
 import Quickshell
 import Quickshell.Io
-import Quickshell.Hyprland
 import Quickshell.Wayland
 import QtQuick
 import QtQuick.Layouts
@@ -121,7 +120,9 @@ ShellRoot {
 
   // a catcher (browser, file manager...) accepting the drop yields a real
   // drop action and nothing else happens; an ignored drop applies the
-  // wallpaper unless the cursor came back over the pill (cancel)
+  // wallpaper. A drop back onto the pill is accepted by the DropArea inside
+  // `box`, so it counts as a cancel. (The Hyprland version asked
+  // `hyprctl cursorpos` where the drop landed; niri has no such IPC call.)
   function finishClipDrag(dropAction) {
     let img = clipDragImage
     clipDragNative = false
@@ -130,30 +131,9 @@ ShellRoot {
     clipDragIcon = ""
     if (!img) return
     if (dropAction !== Qt.IgnoreAction) return
-    dropTargetProbe.img = img
-    dropTargetProbe.running = false
-    dropTargetProbe.running = true
-  }
-
-  // cursor position at the moment of the drop, for the pill/cancel check
-  Process {
-    id: dropTargetProbe
-    property var img: null
-    command: ["sh", "-c", 'hyprctl cursorpos | tr -d " "']
-    stdout: StdioCollector {
-      onStreamFinished: {
-        let img = dropTargetProbe.img
-        dropTargetProbe.img = null
-        if (!img) return
-        let m = /^(\d+),(\d+)$/.exec(this.text.trim())
-        if (!m) return
-        let p = box.mapFromItem(null, Number(m[1]), Number(m[2]) - panelWindow.margins.top)
-        if (p.x >= 0 && p.y >= 0 && p.x <= box.width && p.y <= box.height) return
-        shellRoot.saveCurrentWallpaper(img.path)
-        shellRoot.applyWallpaper(img.path)
-        box.cliphistOpen = false
-      }
-    }
+    shellRoot.saveCurrentWallpaper(img.path)
+    shellRoot.applyWallpaper(img.path)
+    box.cliphistOpen = false
   }
 
   // true while the native drag is running (mirrors the ghost's Drag.active)
@@ -426,6 +406,13 @@ ShellRoot {
       id: box
       anchors.top: parent.top
       anchors.horizontalCenter: parent.horizontalCenter
+
+      // a clipboard image dragged back onto the pill is accepted here, which
+      // reports a real drop action and so cancels the wallpaper drop
+      DropArea {
+        anchors.fill: parent
+        onDropped: (drop) => drop.accept(Qt.CopyAction)
+      }
       readonly property bool revealed: Config.pillNotch || !Config.pillOnHover
         || shellRoot.pillHoverActive
         || controlCenter
